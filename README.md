@@ -75,6 +75,11 @@ data/student_services/*.md
 đọc `expected_answer` hoặc gold contexts để trả lời**, vì làm vậy sẽ gây data
 leakage và làm benchmark mất ý nghĩa.
 
+Submission benchmark hiện dùng Google Gemini `gemini-3.5-flash-lite` qua
+Interactions API (stateless, seed 0, minimal thinking, tối đa 512 output
+tokens), BM25 Top-K 5, và 20 câu hỏi Northstar. OpenAI vẫn được giữ làm provider
+fallback qua `AI_PROVIDER=openai`.
+
 ---
 
 ## Bối cảnh lý thuyết

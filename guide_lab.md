@@ -574,8 +574,12 @@ Mặc định submission dùng official `google-genai` SDK. Mở `.env` và đi�
 ```dotenv
 AI_PROVIDER=gemini
 GEMINI_API_KEY=<API_KEY_CUA_BAN>
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash-lite
 ```
+
+Benchmark của submission đã xác minh model này qua Models API và chạy bằng
+Interactions API stateless với seed 0, minimal thinking, tối đa 512 output
+tokens. BM25 `top_k=5` là tham số retrieval riêng, không phải sampling top-k.
 
 Để dùng fallback OpenAI, đặt `AI_PROVIDER=openai` và cấu hình
 `OPENAI_API_KEY` cùng `OPENAI_MODEL` như trong `.env.example`.

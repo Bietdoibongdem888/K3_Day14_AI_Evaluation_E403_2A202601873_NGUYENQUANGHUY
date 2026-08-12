@@ -87,27 +87,55 @@ The hardest part was keeping expected answers concise while ensuring every date,
 
 ### Exercise 3.2 — Benchmark Run
 
-Real Gemini benchmark status: **BLOCKED — `GEMINI_API_KEY` is missing.** The provider migration, official SDK installation, BM25 pipeline, dataset, and evaluation engine are ready, but the environment and local `.env` contain no Gemini credential. No `actual_answers.json` or scores were fabricated.
+Real benchmark completed with **Google Gemini `gemini-3.5-flash-lite`**, the
+Interactions API, seed `0`, minimal thinking, maximum 512 output tokens, BM25
+retrieval and Top-K `5`. The dataset was the fixed Northstar Student Services
+20-QA golden set. The current Interactions schema does not expose temperature,
+so no legacy temperature parameter was forced.
 
-Configured benchmark target: Provider **Google Gemini**; model
-`gemini-2.5-flash`; temperature `0`; retriever **BM25**; Top-K `5`; dataset
-**Northstar Student Services 20-QA golden set**. This describes configuration,
-not a completed run.
+| ID | Context Recall | Context Precision | Faithfulness | Relevance | Completeness | Overall | Passed | Failure Type |
+|---|---:|---:|---:|---:|---:|---:|---|---|
+| E01 | 0.929 | 1.000 | 1.000 | 0.667 | 0.786 | 0.817 | Yes | - |
+| E02 | 1.000 | 0.804 | 1.000 | 0.750 | 1.000 | 0.917 | Yes | - |
+| E03 | 1.000 | 1.000 | 0.700 | 0.875 | 0.556 | 0.710 | Yes | - |
+| E04 | 1.000 | 0.833 | 0.435 | 0.667 | 1.000 | 0.700 | No | off_topic |
+| E05 | 0.727 | 1.000 | 0.818 | 0.800 | 0.636 | 0.752 | Yes | - |
+| M01 | 0.955 | 1.000 | 0.871 | 0.833 | 0.773 | 0.826 | Yes | - |
+| M02 | 0.500 | 1.000 | 0.625 | 0.722 | 0.409 | 0.585 | No | off_topic |
+| M03 | 0.944 | 1.000 | 0.935 | 0.800 | 0.778 | 0.838 | Yes | - |
+| M04 | 0.882 | 1.000 | 0.902 | 0.727 | 0.853 | 0.828 | Yes | - |
+| M05 | 0.815 | 1.000 | 0.769 | 0.692 | 0.704 | 0.722 | Yes | - |
+| M06 | 0.968 | 0.700 | 0.689 | 0.818 | 0.903 | 0.803 | Yes | - |
+| M07 | 0.938 | 1.000 | 0.605 | 0.765 | 0.750 | 0.706 | Yes | - |
+| H01 | 0.792 | 0.950 | 0.705 | 0.615 | 0.623 | 0.648 | Yes | - |
+| H02 | 0.690 | 1.000 | 0.312 | 0.840 | 0.586 | 0.580 | No | off_topic |
+| H03 | 0.935 | 1.000 | 0.808 | 0.450 | 0.613 | 0.624 | No | off_topic |
+| H04 | 0.895 | 1.000 | 0.833 | 0.857 | 0.658 | 0.783 | Yes | - |
+| H05 | 1.000 | 1.000 | 0.889 | 0.100 | 0.519 | 0.502 | No | irrelevant |
+| A01 | 0.259 | 0.583 | 0.000 | 0.000 | 0.000 | 0.000 | No | hallucination |
+| A02 | 1.000 | 1.000 | 0.538 | 0.294 | 0.300 | 0.378 | No | irrelevant |
+| A03 | 0.828 | 1.000 | 0.923 | 0.429 | 0.759 | 0.703 | No | off_topic |
 
-| ID | Status | ID | Status |
-|---|---|---|---|
-| E01 | Blocked before generation | E02 | Blocked before generation |
-| E03 | Blocked before generation | E04 | Blocked before generation |
-| E05 | Blocked before generation | M01 | Blocked before generation |
-| M02 | Blocked before generation | M03 | Blocked before generation |
-| M04 | Blocked before generation | M05 | Blocked before generation |
-| M06 | Blocked before generation | M07 | Blocked before generation |
-| H01 | Blocked before generation | H02 | Blocked before generation |
-| H03 | Blocked before generation | H04 | Blocked before generation |
-| H05 | Blocked before generation | A01 | Blocked before generation |
-| A02 | Blocked before generation | A03 | Blocked before generation |
+Aggregate results:
 
-Pass rate, metric averages, failure distribution, and the three lowest cases are unavailable until actual model outputs exist. This is intentionally not replaced by mock or golden-answer-derived data.
+- Pass Rate: **60.0%** (12/20)
+- Avg Context Recall: **0.853**
+- Avg Context Precision: **0.944**
+- Avg Faithfulness: **0.718**
+- Avg Relevance: **0.635**
+- Avg Completeness: **0.660**
+- Avg Overall: **0.671**
+- Failure Distribution: `off_topic=5`, `irrelevant=2`, `hallucination=1`
+
+The exact three lowest cases, sorted by Overall ascending, are A01 (0.000,
+hallucination), A02 (0.378, irrelevant), and H05 (0.502, irrelevant). Retrieval
+is strong in aggregate, but A01 is a clear retrieval/scope-routing miss
+(Recall 0.259). A02 has perfect retrieval yet a terse refusal omits required
+safety wording, indicating synthesis/completeness plus lexical-evaluation
+sensitivity. H05 also has perfect retrieval and a substantively correct core
+answer, but omits two non-effect clauses and receives a lexical Relevance of
+0.100; this is generation incompleteness combined with a heuristic false
+negative, not a retrieval failure.
 
 ### Exercise 3.3 — LLM-as-a-Judge Rubric Design
 
@@ -145,7 +173,17 @@ The experiment would compare per-case ranks, gate disagreements, and failure ove
 
 ### Exercise 3.5 — Retrieval Reranking (Bonus)
 
-`rerank_by_overlap()` is implemented and its public test passed. A five-case real before/after table is blocked by the missing `actual_answers.json`; no synthetic values are presented as real results.
+`rerank_by_overlap()` is implemented and its public test passed. The following
+experiment uses five real retrieval traces and preserves each exact chunk set.
+
+| ID | Recall before | Recall after | Precision before | Precision after | Delta Precision |
+|---|---:|---:|---:|---:|---:|
+| E02 | 1.000 | 1.000 | 0.804 | 1.000 | +0.196 |
+| E04 | 1.000 | 1.000 | 0.833 | 1.000 | +0.167 |
+| M06 | 0.968 | 0.968 | 0.700 | 1.000 | +0.300 |
+| H01 | 0.792 | 0.792 | 0.950 | 1.000 | +0.050 |
+| A01 | 0.259 | 0.259 | 0.583 | 1.000 | +0.417 |
+| **Average** | **0.804** | **0.804** | **0.774** | **1.000** | **+0.226** |
 
 Recall should remain unchanged because reranking preserves the exact multiset of chunks and only changes order; union-token coverage is invariant. Reranking is insufficient when the evidence was never retrieved, the query misses the relevant concept, chunks split required conditions, metadata/version filters are wrong, or embeddings fail to represent paraphrases. Those cases require query rewriting, retrieval/index changes, chunking changes, or better representations.
 
@@ -154,7 +192,7 @@ Recall should remain unchanged because reranking preserves the exact multiset of
 - [x] All required tests pass.
 - [x] `golden_dataset.json` validates successfully.
 - [x] Exercise 3.1 and the rubric are complete.
-- [ ] Exercise 3.2 real metrics — blocked by missing `GEMINI_API_KEY`.
-- [ ] Benchmark-derived 5 Whys — blocked by the same missing artifact.
+- [x] Exercise 3.2 contains all real metrics and aggregate results.
+- [x] Benchmark-derived 5 Whys are completed in `reflection.md`.
 - [x] `solution/solution.py` is a standalone implementation.
-- [x] Bonus reranker is implemented; the real five-case experiment remains blocked.
+- [x] Bonus reranker and real five-case experiment are complete.

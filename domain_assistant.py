@@ -23,7 +23,6 @@ from typing import Any, Protocol
 from dotenv import load_dotenv
 from google import genai
 from google.genai import errors as genai_errors
-from google.genai import types as genai_types
 from openai import OpenAI, OpenAIError
 
 load_dotenv(Path(__file__).resolve().with_name(".env"))
@@ -275,8 +274,13 @@ class GeminiGenerator:
     """Deterministic text generator backed by Google's official Gen AI SDK."""
 
     provider = "gemini"
+    api_mode = "interactions"
 
-    def __init__(self, max_output_tokens: int = 300) -> None:
+    def __init__(
+        self,
+        max_output_tokens: int = 512,
+        max_rate_limit_retries: int = 4,
+    ) -> None:
         api_key = os.getenv("GEMINI_API_KEY", "").strip()
         self.model = os.getenv("GEMINI_MODEL", "").strip()
         if not api_key:
@@ -285,28 +289,54 @@ class GeminiGenerator:
             raise RuntimeError("GEMINI_MODEL is missing from .env")
         self.client = genai.Client(api_key=api_key)
         self.max_output_tokens = max_output_tokens
+        self.max_rate_limit_retries = max_rate_limit_retries
 
     def generate(self, prompt: str) -> str:
+        response: Any = None
+        for attempt in range(self.max_rate_limit_retries + 1):
+            try:
+                # Every benchmark question creates one independent interaction.
+                # No previous_interaction_id is supplied, and storage is disabled.
+                response = self.client.interactions.create(
+                    model=self.model,
+                    input=prompt,
+                    generation_config={
+                        "max_output_tokens": self.max_output_tokens,
+                        "seed": 0,
+                        "thinking_level": "minimal",
+                    },
+                    store=False,
+                )
+                break
+            except Exception as exc:
+                # Preserve actionable provider detail while ensuring an API key
+                # can never be echoed if an upstream error includes it.
+                safe_message = re.sub(
+                    r"AIza[A-Za-z0-9_-]+", "[REDACTED]", str(exc)
+                )
+                status = getattr(exc, "status_code", None)
+                is_rate_limit = status == 429 or "Error code: 429" in safe_message
+                if is_rate_limit and attempt < self.max_rate_limit_retries:
+                    retry_match = re.search(
+                        r"retry in\s+([0-9]+(?:\.[0-9]+)?)s",
+                        safe_message,
+                        flags=re.IGNORECASE,
+                    )
+                    wait_seconds = (
+                        float(retry_match.group(1)) + 1.0 if retry_match else 15.0
+                    )
+                    time.sleep(min(max(wait_seconds, 1.0), 60.0))
+                    continue
+                if isinstance(exc, genai_errors.APIError):
+                    raise RuntimeError(
+                        f"Gemini API request failed: {safe_message}"
+                    ) from exc
+                raise RuntimeError(
+                    f"Gemini generation failed ({type(exc).__name__}): "
+                    f"{safe_message}"
+                ) from exc
         try:
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=genai_types.GenerateContentConfig(
-                    temperature=0,
-                    max_output_tokens=self.max_output_tokens,
-                ),
-            )
-        except genai_errors.APIError as exc:
-            # Preserve actionable provider detail while ensuring an API key can
-            # never be echoed if an upstream error unexpectedly includes it.
-            safe_message = re.sub(r"AIza[A-Za-z0-9_-]+", "[REDACTED]", str(exc))
-            raise RuntimeError(f"Gemini API request failed: {safe_message}") from exc
-        except Exception as exc:
-            raise RuntimeError(
-                f"Gemini generation failed: {type(exc).__name__}"
-            ) from exc
-        try:
-            answer = (response.text or "").strip()
+            answer = (response.output_text or "").strip()
         except (AttributeError, ValueError) as exc:
             raise RuntimeError("Gemini returned a response without usable text") from exc
         if not answer:
@@ -463,10 +493,11 @@ def generate_actual_answers(
         "provider",
         assistant.generator.__class__.__name__,
     )
+    api_mode = getattr(assistant.generator, "api_mode", "responses")
     total = len(questions)
     notify(
         f"Ready: {total} questions, {len(assistant.retriever.chunks)} chunks, "
-        f"provider={provider}, model={model}, top_k={top_k}"
+        f"provider={provider}, model={model}, api_mode={api_mode}, top_k={top_k}"
     )
 
     answers: list[dict[str, Any]] = []
@@ -524,6 +555,14 @@ def generate_actual_answers(
             "name": "domain-assistant",
             "provider": provider,
             "model": model,
+            "api_mode": api_mode,
+            "generation_config": {
+                "seed": 0,
+                "thinking_level": "minimal",
+                "max_output_tokens": getattr(
+                    assistant.generator, "max_output_tokens", None
+                ),
+            },
             "top_k": top_k,
             "prompt_version": "1.0",
         },
