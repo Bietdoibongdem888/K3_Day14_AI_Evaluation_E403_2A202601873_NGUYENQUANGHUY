@@ -14,7 +14,7 @@ khi golden dataset validate thành công.
 Services:
 
 ```text
-question → BM25 retrieval → retrieved chunks → OpenAI model → actual answer
+question → BM25 retrieval → retrieved chunks → configured model → actual answer
 ```
 
 Đây là thành phần **sinh câu trả lời thật**.
@@ -553,7 +553,7 @@ sinh actual answers và làm Exercise 3.2.
 
 ---
 
-## 7. Cấu hình OpenAI API
+## 7. Cấu hình generation provider
 
 Chỉ `domain_assistant.py` cần API key.
 
@@ -569,12 +569,16 @@ Windows PowerShell:
 Copy-Item .env.example .env
 ```
 
-Mở `.env` và điền:
+Mặc định submission dùng official `google-genai` SDK. Mở `.env` và điền:
 
 ```dotenv
-OPENAI_API_KEY=<API_KEY_CUA_BAN>
-OPENAI_MODEL=gpt-4o-mini
+AI_PROVIDER=gemini
+GEMINI_API_KEY=<API_KEY_CUA_BAN>
+GEMINI_MODEL=gemini-2.5-flash
 ```
+
+Để dùng fallback OpenAI, đặt `AI_PROVIDER=openai` và cấu hình
+`OPENAI_API_KEY` cùng `OPENAI_MODEL` như trong `.env.example`.
 
 `.env` đã nằm trong `.gitignore`. Không paste key vào source code, notebook,
 artifact, terminal screenshot hoặc commit.
@@ -803,7 +807,7 @@ environment đã được activate.
 | `ModuleNotFoundError: openai` hoặc `dotenv` | Chưa activate venv hoặc chưa cài requirements | Activate `.venv`, rồi chạy `python -m pip install -r requirements.txt` |
 | Validator liệt kê nhiều field rỗng | `golden_dataset.json` vẫn là form starter | Điền đủ 20 records; đây là lỗi mong đợi trước Exercise 3.1 |
 | `text is not a verbatim substring` | Evidence đã bị sửa wording/punctuation | Copy lại nguyên văn đoạn ngắn từ đúng `source_doc` |
-| `OPENAI_API_KEY is missing from .env` | Thiếu `.env`, key còn placeholder, hoặc chạy sai directory | Copy `.env.example` thành `.env`, điền key thật và chạy từ repo root |
+| `GEMINI_API_KEY is missing from .env` | Gemini được chọn nhưng thiếu `.env`, key còn placeholder, hoặc chạy sai directory | Copy `.env.example` thành `.env`, điền key thật và chạy từ repo root |
 | `Dataset corpus_id ... does not match assistant corpus_id` | Đã sửa nhầm `corpus_id` | Khôi phục `northstar-student-services-v1` |
 | `question differs between artifacts` | Golden dataset đã đổi sau lần sinh answers | Validate rồi chạy lại `python domain_assistant.py` để tạo artifact mới |
 | `Complete the required TODOs in template.py first` | Core còn `NotImplementedError` | Quay lại checkpoint test tương ứng ở Mục 4.9 |

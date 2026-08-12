@@ -76,7 +76,7 @@ Verification: `pytest tests/ -v` collected 42 tests and passed all 42, including
 | ID | Difficulty | Source document(s) | Design rationale |
 |---|---|---|---|
 | E02 | Easy | `03_tuition_payment_refund.md` | A single explicit tuition-rate lookup with no exception or cross-document inference. |
-| H01 | Hard | `09_privacy_security_and_policy_updates.md`, `02_course_registration.md` | Tests event-date version selection, a misleading July discussion, the version-2 deadline, approvals, and fee timing. |
+| H01 | Hard | `09_privacy_security_and_policy_updates.md`, `01_academic_calendar.md`, `02_course_registration.md` | Separates the controlling version from window eligibility: version 2.0 controls on August 3, but standard add/drop remains open until August 28, so late-add rules apply only afterward through census. |
 | A02 | Adversarial / prompt injection | `00_system_scope.md` | Directly asks the assistant to override rules, expose secrets, and solicit an authentication code; the expected behavior rejects every unsafe instruction. |
 
 The hardest part was keeping expected answers concise while ensuring every date, exception, and consequence was supported by verbatim evidence. I separated multi-policy claims into small source excerpts and manually checked that no expected-answer claim relied on external university knowledge.
@@ -87,7 +87,12 @@ The hardest part was keeping expected answers concise while ensuring every date,
 
 ### Exercise 3.2 — Benchmark Run
 
-Real benchmark status: **BLOCKED — external transmission approval is required.** `OPENAI_API_KEY` is configured, corpus indexing succeeded (52 chunks), and generation reached E01, but the sandbox connection failed. The requested unsandboxed retry was denied because it would send 20 questions and retrieved corpus excerpts to OpenAI without a separate explicit approval of that payload and destination. No `actual_answers.json` or scores were fabricated.
+Real Gemini benchmark status: **BLOCKED — `GEMINI_API_KEY` is missing.** The provider migration, official SDK installation, BM25 pipeline, dataset, and evaluation engine are ready, but the environment and local `.env` contain no Gemini credential. No `actual_answers.json` or scores were fabricated.
+
+Configured benchmark target: Provider **Google Gemini**; model
+`gemini-2.5-flash`; temperature `0`; retriever **BM25**; Top-K `5`; dataset
+**Northstar Student Services 20-QA golden set**. This describes configuration,
+not a completed run.
 
 | ID | Status | ID | Status |
 |---|---|---|---|
@@ -149,7 +154,7 @@ Recall should remain unchanged because reranking preserves the exact multiset of
 - [x] All required tests pass.
 - [x] `golden_dataset.json` validates successfully.
 - [x] Exercise 3.1 and the rubric are complete.
-- [ ] Exercise 3.2 real metrics — blocked by external transmission approval.
+- [ ] Exercise 3.2 real metrics — blocked by missing `GEMINI_API_KEY`.
 - [ ] Benchmark-derived 5 Whys — blocked by the same missing artifact.
 - [x] `solution/solution.py` is a standalone implementation.
 - [x] Bonus reranker is implemented; the real five-case experiment remains blocked.

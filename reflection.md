@@ -6,7 +6,7 @@
 
 ## 1. Benchmark Results Summary
 
-**Status:** Real benchmark not completed. The environment contains an `OPENAI_API_KEY`, the corpus indexed successfully into 52 chunks, and generation reached E01. The sandbox connection failed, and the unsandboxed retry was denied pending explicit approval to transmit 20 questions and retrieved Northstar policy excerpts to OpenAI. No actual-answer or benchmark artifact was produced.
+**Status:** Real Gemini benchmark not completed. The repository now uses the official `google-genai` SDK through a provider abstraction, but neither the environment nor local `.env` contains `GEMINI_API_KEY`. No actual-answer or benchmark artifact was produced.
 
 Consequently, pass rate, average/minimum/maximum Context Recall, Context Precision, Faithfulness, Relevance, Completeness, Overall Score, score bands, and failure distribution are **not available**. Recording numeric values here would fabricate benchmark evidence.
 
@@ -101,7 +101,7 @@ Candidate augmentation categories—not claimed failures—are: an older-event p
 
 ## 7. Final Reflection
 
-The benchmark outcome itself cannot contradict an initial prediction because no model answer was produced. The important engineering finding was earlier in the pipeline: possessing a configured key is not sufficient authorization to export a synthetic policy corpus. Reproducible evaluation includes data-egress approval and artifact provenance, not just functioning code.
+The benchmark outcome itself cannot contradict an initial prediction because no Gemini answer was produced. The important engineering finding was earlier in the pipeline: provider abstraction and dependency readiness do not replace valid provider credentials. Reproducible evaluation includes credential hygiene, explicit provider/model metadata, and artifact provenance, not just functioning code.
 
 Word-overlap heuristics are deterministic and transparent, but they miss lexical mismatch, synonyms and paraphrases, semantic equivalence, tokenization differences, negation, factual nuance, and procedural correctness. They can also reward an unsupported statement that repeats context vocabulary, and penalize a correct concise refusal whose wording differs from the reference. Context Precision's binary relevance threshold is sensitive to chunk size, while set tokenization discards frequency and sentence relationships.
 

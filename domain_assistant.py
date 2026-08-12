@@ -21,6 +21,9 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from dotenv import load_dotenv
+from google import genai
+from google.genai import errors as genai_errors
+from google.genai import types as genai_types
 from openai import OpenAI, OpenAIError
 
 load_dotenv(Path(__file__).resolve().with_name(".env"))
@@ -243,6 +246,8 @@ class TextGenerator(Protocol):
 
 
 class OpenAIGenerator:
+    provider = "openai"
+
     def __init__(self, max_output_tokens: int = 300) -> None:
         api_key = os.getenv("OPENAI_API_KEY", "").strip()
         self.model = os.getenv("OPENAI_MODEL", "").strip()
@@ -264,6 +269,60 @@ class OpenAIGenerator:
         if not answer:
             raise RuntimeError("OpenAI returned an empty answer")
         return answer
+
+
+class GeminiGenerator:
+    """Deterministic text generator backed by Google's official Gen AI SDK."""
+
+    provider = "gemini"
+
+    def __init__(self, max_output_tokens: int = 300) -> None:
+        api_key = os.getenv("GEMINI_API_KEY", "").strip()
+        self.model = os.getenv("GEMINI_MODEL", "").strip()
+        if not api_key:
+            raise RuntimeError("GEMINI_API_KEY is missing from .env")
+        if not self.model:
+            raise RuntimeError("GEMINI_MODEL is missing from .env")
+        self.client = genai.Client(api_key=api_key)
+        self.max_output_tokens = max_output_tokens
+
+    def generate(self, prompt: str) -> str:
+        try:
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+                config=genai_types.GenerateContentConfig(
+                    temperature=0,
+                    max_output_tokens=self.max_output_tokens,
+                ),
+            )
+        except genai_errors.APIError as exc:
+            # Preserve actionable provider detail while ensuring an API key can
+            # never be echoed if an upstream error unexpectedly includes it.
+            safe_message = re.sub(r"AIza[A-Za-z0-9_-]+", "[REDACTED]", str(exc))
+            raise RuntimeError(f"Gemini API request failed: {safe_message}") from exc
+        except Exception as exc:
+            raise RuntimeError(
+                f"Gemini generation failed: {type(exc).__name__}"
+            ) from exc
+        try:
+            answer = (response.text or "").strip()
+        except (AttributeError, ValueError) as exc:
+            raise RuntimeError("Gemini returned a response without usable text") from exc
+        if not answer:
+            raise RuntimeError("Gemini returned an empty answer")
+        return answer
+
+
+def create_default_generator() -> TextGenerator:
+    """Create the configured provider without coupling retrieval to an SDK."""
+
+    provider = os.getenv("AI_PROVIDER", "openai").strip().lower()
+    if provider == "gemini":
+        return GeminiGenerator()
+    if provider == "openai":
+        return OpenAIGenerator()
+    raise RuntimeError(f"Unsupported AI_PROVIDER: {provider}")
 
 
 @dataclass(frozen=True)
@@ -299,7 +358,7 @@ class DomainAssistant:
         return cls(
             corpus_id,
             BM25Retriever(chunks),
-            generator if generator is not None else OpenAIGenerator(),
+            generator if generator is not None else create_default_generator(),
             top_k,
         )
 
@@ -399,10 +458,15 @@ def generate_actual_answers(
         )
 
     model = getattr(assistant.generator, "model", assistant.generator.__class__.__name__)
+    provider = getattr(
+        assistant.generator,
+        "provider",
+        assistant.generator.__class__.__name__,
+    )
     total = len(questions)
     notify(
         f"Ready: {total} questions, {len(assistant.retriever.chunks)} chunks, "
-        f"model={model}, top_k={top_k}"
+        f"provider={provider}, model={model}, top_k={top_k}"
     )
 
     answers: list[dict[str, Any]] = []
@@ -458,6 +522,7 @@ def generate_actual_answers(
         "generated_at": datetime.now(UTC).isoformat(),
         "agent": {
             "name": "domain-assistant",
+            "provider": provider,
             "model": model,
             "top_k": top_k,
             "prompt_version": "1.0",
@@ -508,7 +573,14 @@ def main() -> int:
             json.dumps(artifact, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
-    except (OSError, OpenAIError, TypeError, ValueError, RuntimeError) as exc:
+    except (
+        OSError,
+        OpenAIError,
+        genai_errors.APIError,
+        TypeError,
+        ValueError,
+        RuntimeError,
+    ) as exc:
         print(f"ERROR: {exc}")
         return 2
     print(f"Generated {len(artifact['answers'])} actual answers: {output}")

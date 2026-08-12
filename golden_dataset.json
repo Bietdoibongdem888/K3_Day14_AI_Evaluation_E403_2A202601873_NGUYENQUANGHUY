@@ -193,12 +193,16 @@
     {
       "id": "H01",
       "difficulty": "hard",
-      "question": "A student discussed a late add in July 2026 but submits the request on August 3, 2026. Which registration-policy version applies, and what are its deadline and fee rules?",
-      "expected_answer": "Registration Policy version 2.0 applies because the registration action occurs on or after August 1, 2026; the July discussion does not change that. The late add is available only through census, requires instructor and programme-director approval, and carries a USD 40 per-course fee due within two business days of approval.",
+      "question": "A student discussed adding a course in July 2026 and submits the add request on August 3, 2026. Which registration-policy version controls, is the late-add window active on that date, and what rules would apply once that window begins?",
+      "expected_answer": "Registration Policy version 2.0 controls because the registration action occurs on or after August 1, 2026; the July discussion does not change that. On August 3, the Fall 2026 standard add/drop period is still open, so the late-add window has not begun. After standard add/drop ends on August 28 and through the September 4 census date, a late add requires instructor and programme-director approval and a USD 40 per-course fee paid within two business days of approval.",
       "contexts": [
         {
           "source_doc": "09_privacy_security_and_policy_updates.md",
           "text": "A late-add request made on or after August 1, 2026 follows version 2.0 even if the student first discussed the request in July."
+        },
+        {
+          "source_doc": "01_academic_calendar.md",
+          "text": "For Fall 2026, priority registration opens on July 20, regular registration closes on August 14, classes begin on August 17, and the standard add/drop period ends at 17:00 on August 28. The census date is September 4."
         },
         {
           "source_doc": "02_course_registration.md",
