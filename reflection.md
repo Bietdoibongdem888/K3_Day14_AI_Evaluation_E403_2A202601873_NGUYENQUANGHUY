@@ -2,228 +2,88 @@
 
 ## Evaluation Report & Failure Analysis
 
-Dùng kết quả thật trong `artifacts/benchmark_results.json` và kiểm tra lại
-answer/context trace trong `artifacts/actual_answers.json` trước khi kết luận.
-
----
+**Student:** Nguyễn Quang Huy · **Student ID:** 2A202601873 · **Class:** E403 · **Cohort:** K3
 
 ## 1. Benchmark Results Summary
 
-**Overall pass rate:** ____%
+**Status:** Real benchmark not completed. The environment contains an `OPENAI_API_KEY`, the corpus indexed successfully into 52 chunks, and generation reached E01. The sandbox connection failed, and the unsandboxed retry was denied pending explicit approval to transmit 20 questions and retrieved Northstar policy excerpts to OpenAI. No actual-answer or benchmark artifact was produced.
 
-| Metric | Average | Min | Max | Nhận xét |
-|---|---:|---:|---:|---|
-| Context Recall | | | | |
-| Context Precision | | | | |
-| Faithfulness | | | | |
-| Relevance | | | | |
-| Completeness | | | | |
-| Overall Score | | | | |
+Consequently, pass rate, average/minimum/maximum Context Recall, Context Precision, Faithfulness, Relevance, Completeness, Overall Score, score bands, and failure distribution are **not available**. Recording numeric values here would fabricate benchmark evidence.
 
-**Score interpretation**
-
-- Metrics/cases ở mức Good (0.8–1.0): ____
-- Metrics/cases ở mức Needs Work (0.6–0.8): ____
-- Metrics/cases ở mức Significant Issues (<0.6): ____
-
-**Failure type distribution**
-
-| Failure Type | Count | Percentage |
-|---|---:|---:|
-| hallucination | | |
-| irrelevant | | |
-| incomplete | | |
-| off_topic | | |
-| refusal | | |
-
-**Chẩn đoán tổng quan:** Vấn đề chính nằm ở retrieval, generation hay cả hai?
-Dùng ít nhất hai metrics để bảo vệ kết luận.
-
-> *Câu trả lời:*
-
----
+The retrieval-versus-generation diagnosis is also deferred. It requires at least Context Recall/Precision plus Faithfulness/Completeness from real traces; without those measurements, attributing failures to either subsystem would be speculation.
 
 ## 2. Top 3 Worst Failures — 5 Whys
 
-Phân loại failure trước khi đề xuất fix. Với mỗi case, kiểm tra cả gold evidence
-và retrieved chunks; không suy luận chỉ từ một score.
+The three lowest cases cannot be selected until `artifacts/actual_answers.json` and `artifacts/benchmark_results.json` exist. For each eventual case, the analysis will record the ID, full expected and actual answers, all five metrics, overall score, failure type, and exact retrieved-chunk inspection before starting the causal chain.
 
-### Failure 1
+The required chain will be applied as follows:
 
-**ID và question:**
+| Level | Evidence requirement |
+|---|---|
+| Symptom | State the observed answer defect and the metric(s) that expose it. |
+| Why 1 | Connect the defect to a missing, noisy, contradicted, or unused retrieved fact. |
+| Why 2 | Connect that evidence condition to query, retrieval, ranking, chunking, or generation behavior. |
+| Why 3 | Identify why the current prompt/index/guardrail permitted that behavior. |
+| Why 4 | Identify why evaluation or monitoring did not prevent it earlier. |
+| Why 5 | Name one controllable engineering root cause with a testable fix. |
 
-> *Điền:*
-
-**Expected answer:**
-
-> *Điền:*
-
-**Actual answer:**
-
-> *Điền:*
-
-**Scores:** Context Recall: ____ | Context Precision: ____ | Faithfulness: ____ |
-Relevance: ____ | Completeness: ____ | Overall: ____
-
-**Evidence inspection:** Retriever lấy đúng/thiếu/thừa chunks nào?
-
-> *Câu trả lời:*
-
-| Level | Question | Answer |
-|---|---|---|
-| Symptom | Vấn đề quan sát được là gì? | |
-| Why 1 | Tại sao symptom xảy ra? | |
-| Why 2 | Tại sao nguyên nhân trên xảy ra? | |
-| Why 3 | Tại sao vấn đề đó chưa được ngăn chặn? | |
-| Why 4 | Tại sao cơ chế hiện tại chưa phát hiện hoặc xử lý được? | |
-| Why 5 | Root cause có thể hành động được là gì? | |
-
-**Root cause từ `find_root_cause()`:**
-
-> *Paste output:*
-
-**Bạn đồng ý hay không? Dẫn evidence từ trace:**
-
-> *Câu trả lời:*
-
-**Proposed fix cụ thể:**
-
-> *Câu trả lời:*
-
-### Failure 2
-
-**ID và question:**
-
-> *Điền:*
-
-**Expected answer:**
-
-> *Điền:*
-
-**Actual answer:**
-
-> *Điền:*
-
-**Scores:** Context Recall: ____ | Context Precision: ____ | Faithfulness: ____ |
-Relevance: ____ | Completeness: ____ | Overall: ____
-
-**Evidence inspection:**
-
-> *Câu trả lời:*
-
-| Level | Question | Answer |
-|---|---|---|
-| Symptom | Vấn đề quan sát được là gì? | |
-| Why 1 | Tại sao symptom xảy ra? | |
-| Why 2 | Tại sao nguyên nhân trên xảy ra? | |
-| Why 3 | Tại sao vấn đề đó chưa được ngăn chặn? | |
-| Why 4 | Tại sao cơ chế hiện tại chưa phát hiện hoặc xử lý được? | |
-| Why 5 | Root cause có thể hành động được là gì? | |
-
-**Root cause và proposed fix:**
-
-> *Câu trả lời:*
-
-### Failure 3
-
-**ID và question:**
-
-> *Điền:*
-
-**Expected answer:**
-
-> *Điền:*
-
-**Actual answer:**
-
-> *Điền:*
-
-**Scores:** Context Recall: ____ | Context Precision: ____ | Faithfulness: ____ |
-Relevance: ____ | Completeness: ____ | Overall: ____
-
-**Evidence inspection:**
-
-> *Câu trả lời:*
-
-| Level | Question | Answer |
-|---|---|---|
-| Symptom | Vấn đề quan sát được là gì? | |
-| Why 1 | Tại sao symptom xảy ra? | |
-| Why 2 | Tại sao nguyên nhân trên xảy ra? | |
-| Why 3 | Tại sao vấn đề đó chưa được ngăn chặn? | |
-| Why 4 | Tại sao cơ chế hiện tại chưa phát hiện hoặc xử lý được? | |
-| Why 5 | Root cause có thể hành động được là gì? | |
-
-**Root cause và proposed fix:**
-
-> *Câu trả lời:*
-
----
+For each case, `FailureAnalyzer.find_root_cause()` will be compared with the trace. Agreement will be accepted only if its metric branch matches retrieved evidence; otherwise the manual trace finding takes precedence and the heuristic limitation will be documented. No three case-specific 5 Whys are invented while model output is absent.
 
 ## 3. Failure Clustering
 
-Một root cause có thể tạo ra nhiều failures. Nhóm theo nguyên nhân có thể sửa,
-không chỉ nhóm theo tên metric.
+Benchmark-derived IDs and cluster priorities are deferred. The actionable taxonomy to apply is:
 
-| Cluster | Root Cause | Failure IDs | Priority |
-|---|---|---|---|
-| 1 | | | High/Medium/Low |
-| 2 | | | |
-| 3 | | | |
+| Cluster | Evidence-based root cause rule | Candidate priority rule |
+|---|---|---|
+| Retrieval coverage | Low Context Recall: necessary evidence absent from the retrieved union. | High when it affects deadlines, fees, eligibility, or policy versions. |
+| Ranking/noise | Adequate recall but low Context Precision: evidence exists but is buried. | Medium; High if the generator follows an earlier conflicting chunk. |
+| Generation/grounding | Strong retrieval with low Faithfulness or Completeness: evidence is ignored, distorted, or only partly synthesized. | High for unsupported policy claims or omitted required actions. |
+| Intent/scope/adversarial handling | Low relevance, inappropriate refusal, prompt-injection compliance, or false-premise acceptance. | High for privacy/security; otherwise based on recurrence and harm. |
 
-**Nếu chỉ được sửa một cluster, bạn chọn cluster nào và vì sao?**
-
-> *Câu trả lời:*
-
----
+If only one measured cluster could be fixed, I would choose the cluster with the largest number of affected cases weighted by consequence, not merely the lowest average metric. A privacy leak or wrong deadline may outrank several harmless wording failures.
 
 ## 4. Improvement Log
 
-Paste output của `generate_improvement_log()`:
+Calling `generate_improvement_log([], [])` before a real benchmark truthfully yields only the table header because there are no observed failures:
 
-```text
-[paste Markdown table here]
-```
+| Failure ID | Type | Root Cause | Suggested Fix | Priority | Status |
+|---|---|---|---|---|---|
 
-**Ba improvement suggestions ưu tiên**
+Provisional engineering actions are kept separate from observed failure claims:
 
-1. ____
-2. ____
-3. ____
+| Action | Target metric | Expected effect | Verification method | Status |
+|---|---|---|---|---|
+| Add multi-query retrieval and version/effective-date metadata filters. | Context Recall | Recover cross-document and controlling-version evidence. | Rerun all Hard cases; compare per-case recall and inspect the union without changing gold evidence. | Open |
+| Add a deterministic reranker before generation. | Context Precision | Move chunks that contain required policy terms and dates earlier without changing recall. | On at least five real traces, verify identical chunk sets, unchanged recall, and non-decreasing precision. | Open |
+| Add a structured policy checklist and unsupported-claim guardrail. | Faithfulness and Completeness | Reduce invented rules and missing fees, deadlines, exceptions, and offices. | Rerun the fixed 20-case suite plus adversarial cases; require no critical-case regression. | Open |
 
-Với mỗi suggestion, nêu metric dự kiến thay đổi và cách đo lại.
-
-| Suggestion | Target metric | Verification method |
-|---|---|---|
-| | | |
-| | | |
-| | | |
-
----
+These are risk-driven hypotheses. Their priority must be updated after real benchmark clusters are available.
 
 ## 5. Regression Testing Strategy
 
-**Câu 1: Khi nào chạy `run_regression()` trong production workflow?**
+Run `run_regression()` on every prompt, model, retrieval, embedding, reranker, chunking, corpus, dependency, or evaluation-code change; also run it nightly on the pinned golden dataset and before deployment. The quality gate belongs after offline benchmark artifact validation and before targeted human review.
 
-> *Câu trả lời:*
+A 0.05 drop is a useful general tolerance for this deterministic 20-case lab, but Student Services also needs absolute gates and critical-case rules. On only 20 records, averages can hide one dangerous answer, so faithfulness below 0.70 on any privacy, fee, deadline, eligibility, or version-selection case should block regardless of aggregate delta.
 
-**Câu 2: Threshold drop 0.05 có phù hợp Student Services không? Vì sao?**
+Deployment blockers:
 
-> *Câu trả lời:*
+- faithfulness or completeness crossing its absolute gate;
+- any prompt-injection/privacy failure, unsupported waiver/approval, or wrong controlling policy version;
+- more than 0.05 decline in Faithfulness, Relevance, or Completeness;
+- malformed/missing artifact IDs or retrieval traces.
 
-**Câu 3: Metric/failure nào phải block deployment, metric nào chỉ alert?**
-
-> *Câu trả lời:*
-
-**Câu 4: Điền evaluation stages vào flow.**
+Warnings that require investigation but may not block alone include a small Context Precision decrease with unchanged recall and answer quality, latency/cost drift, or a non-critical score movement within tolerance. Human review is mandatory for adversarial cases, policy ambiguity, privacy/security, medical exceptions, appeals, and any case close to a blocking threshold.
 
 ```text
-Code/prompt/retrieval change → [________] → [________] → [________] → Deploy
+Code / Prompt / Retrieval Change
+→ Offline Benchmark
+→ Regression Gate
+→ Targeted Human Review
+→ Deploy
+→ Online Monitoring
 ```
 
-> *Giải thích:*
-
----
+Offline measurement prevents known regressions; the gate applies absolute and delta rules; human reviewers adjudicate consequential ambiguity; online monitoring detects traffic and policy drift that the static dataset cannot cover.
 
 ## 6. Continuous Improvement Loop
 
@@ -231,25 +91,18 @@ Code/prompt/retrieval change → [________] → [________] → [________] → De
 Evaluate → Analyze → Improve → Augment benchmark → Repeat
 ```
 
-| Priority | Action | Metric dự kiến cải thiện | Expected impact |
+| Priority | Action | Expected metric | Expected impact |
 |---:|---|---|---|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
+| 1 | Run the approved real benchmark and preserve answer/retrieval traces. | All metrics | Establish an auditable baseline rather than optimizing from assumptions. |
+| 2 | Fix the highest harm-weighted measured cluster and add its trace as a regression case. | Cluster-dependent | Convert observed failures into durable protection. |
+| 3 | Calibrate overlap and LLM-judge decisions against independent human labels. | Judge agreement and answer-quality validity | Reduce lexical and judge bias in deployment decisions. |
 
-**Hai hoặc ba failure cases nào cần thêm vào benchmark ở vòng tiếp theo?**
-
-> *Câu trả lời:*
-
----
+Candidate augmentation categories—not claimed failures—are: an older-event policy-version case, a question combining scholarship and medical withdrawal, and an indirect prompt injection embedded in retrieved text. Exact cases should be selected after the first trace review to avoid duplicating existing intent.
 
 ## 7. Final Reflection
 
-**Điều gì trong kết quả benchmark trái với dự đoán ban đầu của bạn?**
+The benchmark outcome itself cannot contradict an initial prediction because no model answer was produced. The important engineering finding was earlier in the pipeline: possessing a configured key is not sufficient authorization to export a synthetic policy corpus. Reproducible evaluation includes data-egress approval and artifact provenance, not just functioning code.
 
-> *Câu trả lời:*
+Word-overlap heuristics are deterministic and transparent, but they miss lexical mismatch, synonyms and paraphrases, semantic equivalence, tokenization differences, negation, factual nuance, and procedural correctness. They can also reward an unsupported statement that repeats context vocabulary, and penalize a correct concise refusal whose wording differs from the reference. Context Precision's binary relevance threshold is sensitive to chunk size, while set tokenization discards frequency and sentence relationships.
 
-**Word-overlap heuristics trong lab có giới hạn gì? Nếu đưa hệ thống vào
-production, bạn sẽ thay hoặc bổ sung metric nào?**
-
-> *Câu trả lời:*
+For production Student Services evaluation, I would combine lexical checks with embeddings for semantic similarity, NLI/entailment for claim grounding and contradiction, retrieval recall/precision with version metadata, a calibrated domain-specific LLM judge, deterministic checks for dates/fees/offices, task-completion assertions, and human review for consequential cases. Online monitoring should track unsupported-claim rate, refusal/scope errors, escalation correctness, user outcomes, latency, cost, and drift by policy version. The fixed golden suite remains the regression anchor; human labels and real incident-derived cases continually refine it.
